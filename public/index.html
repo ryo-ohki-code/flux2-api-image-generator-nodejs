@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8" />
+	<title>OpenRouter Image Generator</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<style>
+		:root {
+			--bg-color: #1e1e2f;
+			--card-bg: #2a2a40;
+			--text-color: #ffffff;
+			--accent-color: #6c63ff;
+			--border-radius: 12px;
+			--shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+		}
+
+		* {
+			box-sizing: border-box;
+			margin: 0;
+			padding: 0;
+		}
+
+		body {
+			font-family: 'Segoe UI', sans-serif;
+			background-color: var(--bg-color);
+			color: var(--text-color);
+			padding: 2rem;
+			min-height: 100vh;
+			line-height: 1.6;
+		}
+
+		h1,
+		h3 {
+			text-align: center;
+			margin-bottom: 1.5rem;
+		}
+
+		form {
+			background-color: var(--card-bg);
+			padding: 2rem;
+			border-radius: var(--border-radius);
+			max-width: 600px;
+			margin: auto;
+			box-shadow: var(--shadow);
+		}
+
+		label {
+			font-weight: bold;
+			display: block;
+			margin-top: 1rem;
+		}
+
+		textarea,
+		select,
+		input[type="file"],
+		input[type="text"],
+		input[type="number"],
+		button {
+			width: 100%;
+			padding: 0.75rem;
+			margin-top: 0.5rem;
+			border: none;
+			border-radius: 8px;
+			background-color: #33334d;
+			color: white;
+			font-size: 1rem;
+		}
+
+		button {
+			background-color: var(--accent-color);
+			color: white;
+			font-weight: bold;
+			cursor: pointer;
+			transition: background 0.3s ease;
+			margin-top: 1.5rem;
+		}
+
+		button:disabled {
+			opacity: 0.6;
+			cursor: not-allowed;
+		}
+
+		button:hover:not(:disabled) {
+			background-color: #5a54d9;
+		}
+
+		.result-container {
+			margin-top: 2rem;
+			text-align: center;
+		}
+
+		.result-container img {
+			max-width: 100%;
+			border-radius: 10px;
+			margin: 1rem auto;
+			box-shadow: var(--shadow);
+		}
+
+		a {
+			display: block;
+			text-align: center;
+			color: var(--accent-color);
+			margin-top: 1rem;
+			text-decoration: none;
+		}
+
+		a:hover {
+			text-decoration: underline;
+		}
+
+		#referenceInputsContainer input {
+			margin-bottom: 0.75rem;
+		}
+
+		#addReferenceBtn {
+			background-color: transparent;
+			border: 2px dashed var(--accent-color);
+			color: var(--accent-color);
+			font-weight: bold;
+			cursor: pointer;
+			transition: all 0.2s ease-in-out;
+			margin-top: 0.5rem;
+		}
+
+		#addReferenceBtn:hover {
+			background-color: var(--accent-color);
+			color: #fff;
+		}
+
+		.image-preview-container {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 10px;
+			margin-top: 10px;
+		}
+
+		.image-preview-wrapper {
+			position: relative;
+			display: inline-block;
+		}
+
+		.image-preview-wrapper img {
+			width: 80px;
+			height: 80px;
+			object-fit: cover;
+			border-radius: 5px;
+			border: 1px solid #ddd;
+		}
+
+		.image-preview-wrapper button {
+			position: absolute;
+			top: -8px;
+			right: -8px;
+			background: red;
+			color: white;
+			border: none;
+			border-radius: 50%;
+			width: 20px;
+			height: 20px;
+			font-size: 12px;
+			cursor: pointer;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
+
+		.hidden {
+			display: none;
+		}
+	</style>
+</head>
+
+<body>
+	<h1>🎨 OpenRouter Image Generator</h1>
+
+	<a href="/history.html" id="history" target="_blank">📜 View History</a>
+	<br>
+
+	<form id="genForm">
+		<label for="model">AI Model:</label>
+		<select id="model" name="model">
+			<option value="">Loading models...</option>
+		</select>
+
+		<label id="guidanceLabel" class="hidden" for="guidance">Guidance (prompt adherence):</label>
+		<input type="hidden" name="guidance" id="guidance" placeholder="Guidance 0-10" value="">
+		<label id="stepsLabel" class="hidden" for="guidance">Denoising Steps:</label>
+		<input type="hidden" name="steps" id="steps" placeholder="Steps 1-50" value="">
+
+		<label for="prompt">Prompt:</label>
+		<textarea id="prompt" name="prompt" rows="7" placeholder="Describe what you'd like to generate..."
+			required></textarea>
+
+		<!-- New: Advanced Prompt Builder Section -->
+		<div id="advancedPromptToggle">
+			<button type="button" id="usePromptBuilder" class="secondary-btn">
+				✨ Show Advanced Options
+			</button>
+		</div>
+
+		<!-- Collapsible Advanced Form (hidden by default) -->
+		<div id="promptBuilderForm" style="display: none; ">
+			<br>
+			<br>
+			<h3>🎨 Advanced Prompt Builder</h3>
+			<input type="hidden" id="mode" name="mode" value="normal">
+
+			<!-- Optional: Style -->
+			<label for="styleInput">Style (optional)</label><br>
+			<input type="text" id="styleInput" name="mood" placeholder="e.g., warm, reflective, joyful, mysterious">
+			<select id="styleSelection" name="style">
+				<option value="">Custom</option>
+				<option value="auto">Auto-select based on scene</option>
+				<option value="Cinematic semi-realistic illustration">Cinematic semi-realistic</option>
+				<option value="Hyperrealistic 8K">Hyperrealistic 8K</option>
+				<option value="Anime / Illustration">Anime / Illustration</option>
+				<option value="Oil painting">Oil painting</option>
+				<option value="Watercolor sketch">Watercolor sketch</option>
+				<option value="Cyberpunk neon">Cyberpunk neon</option>
+				<option value="Cartoon">Cartoon</option>
+				<option value="Minimalist">Minimalist</option>
+				<option value="Retro">Retro</option>
+				<option value="Pop art">Pop art</option>
+				<option value="Impressionistic">Impressionistic</option>
+				<option value="Steampunk">Steampunk</option>
+				<option value="Noir">Noir</option>
+				<option value="Art nouveau">Art nouveau</option>
+				<option value="Art deco">Art deco</option>
+				<option value="Pixel art">Pixel art</option>
+				<option value="Grunge">Grunge</option>
+				<option value="Vintage">Vintage</option>
+				<!-- Add more as needed -->
+			</select><br><br>
+
+			<!-- Optional: Mood -->
+			<label for="moodInput">Mood / Emotion</label><br>
+			<input type="text" id="moodInput" name="mood" placeholder="e.g., warm, reflective, joyful, mysterious">
+			<select id="moodSuggestions">
+				<option value="">Custom</option>
+				<option value="auto">Auto-select based on scene</option>
+				<option value="warm, intimate, hopeful">Warm, intimate, hopeful</option>
+				<option value="dark, moody, dramatic">Dark, moody, dramatic</option>
+				<option value="joyful, festive, energetic">Joyful, festive, energetic</option>
+				<option value="peaceful, serene, quiet">Peaceful, serene, quiet</option>
+				<option value="epic, cinematic, grand">Epic, cinematic, grand</option>
+			</select><br><br>
+
+			<!-- Visual Color Palette Selector -->
+			<label for="colorPalette">Color Palette (optional)</label><br>
+			<div id="colorPalette" style="display: flex; flex-direction: column; gap: 0.5rem;">
+				<!-- Visual swatches -->
+				<div id="colorSwatches" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+					<!-- Pre-filled empty swatches (4 max) -->
+					<input type="hidden" id="colors" name="colors">
+
+					<div class="swatch"
+						style="width: 50px; height: 50px; border-radius: 6px; border: 2px solid #ccc; cursor: pointer; position: relative;"
+						data-index="0" title="Click to pick color"></div>
+					<div class="swatch"
+						style="width: 50px; height: 50px; border-radius: 6px; border: 2px solid #ccc; cursor: pointer; position: relative;"
+						data-index="1" title="Click to pick color"></div>
+					<div class="swatch"
+						style="width: 50px; height: 50px; border-radius: 6px; border: 2px solid #ccc; cursor: pointer; position: relative;"
+						data-index="2" title="Click to pick color"></div>
+					<div class="swatch"
+						style="width: 50px; height: 50px; border-radius: 6px; border: 2px solid #ccc; cursor: pointer; position: relative;"
+						data-index="3" title="Click to pick color"></div>
+				</div>
+
+				<!-- Hidden field to store hex codes -->
+				<input type="hidden" id="colorPaletteHex" name="colorPalette" value="">
+
+
+			</div>
+
+			<!-- Advanced Mode Inputs -->
+			<div id="advancedModeInputs" style="margin-top: 2rem; border-top: 1px solid #ddd; padding-top: 1rem;">
+				<h4>📜 Title / Subtitle Settings (Advanced)</h4>
+
+				<label for="pictureTitle">Title</label><br>
+				<input type="text" id="pictureTitle" name="title" placeholder="e.g., The parrot incident" value=""><br>
+
+				<label for="pictureSubtitle">Subtitle</label><br>
+				<input type="text" id="pictureSubtitle" name="subtitle" placeholder="e.g., A birds Story"
+					value=""><br><br>
+			</div>
+
+			<div id="advancedModeInputs" style="margin-top: 2rem; border-top: 1px solid #ddd; padding-top: 1rem;">
+				<h4>📷 Camera Settings (Advanced)</h4>
+
+				<label for="cameraAngle">Camera Angle</label><br>
+				<select id="cameraAngle" name="camera_angle">
+					<option value="">Auto-select</option>
+					<option value="eye-level">Eye-level</option>
+					<option value="low-angle">Low-angle (heroic/empowering)</option>
+					<option value="high-angle">High-angle (vulnerable/observational)</option>
+					<option value=" Dutch angle">Dutch angle (dynamic/tense)</option>
+					<option value="close-up">Close-up (intimate)</option>
+					<option value="wide shot">Wide shot (context/environment)</option>
+					<option value="over-the-shoulder">Over-the-Shoulder (conversation/conflict)</option>
+					<option value="bird's-eye-view">Bird's-Eye View (all-seeing/watching)</option>
+					<option value="worm's-eye-view">Worm's-Eye View (humble/powerless)</option>
+				</select><br><br>
+
+				<label for="cameraLens">Lens / Perspective</label><br>
+				<select id="cameraLens" name="camera_lens">
+					<option value="">Auto-select</option>
+					<option value="35mm cinematic">35mm cinematic (slight distortion, immersive)</option>
+					<option value="50mm standard">50mm standard (natural perspective)</option>
+					<option value="85mm portrait">85mm portrait (compressed, shallow DOF)</option>
+					<option value="fisheye">Fisheye (extreme wide, curved)</option>
+					<option value="tilt-shift">Tilt-shift (miniature effect)</option>
+					<option value="telephoto">Telephoto (compressed background, isolated subject)</option>
+				</select><br><br>
+
+				<label for="cameraDistance">Camera Distance</label><br>
+				<select id="cameraDistance" name="camera_distance">
+					<option value="">Auto-select</option>
+					<option value="close-up">Close-up</option>
+					<option value="medium">Medium</option>
+					<option value="long">Long</option>
+
+				</select><br><br>
+
+				<label for="depthOfField">Depth of Field / Camera Focus</label><br>
+				<input type="text" id="depthOfField" name="depth_of_field"
+					placeholder="e.g., sharp focus on subjects, soft blurred background" value=""><br><br>
+
+			</div>
+
+			<div id="advancedModeInputs" style="margin-top: 2rem; border-top: 1px solid #ddd; padding-top: 1rem;">
+
+				<!-- Details (List of visual notes) -->
+				<h4>✨ Key Visual Details</h4>
+				<label for="detailsInput">Add comma-separated details (max 5 recommended)</label><br>
+				<textarea id="detailsInput" name="details" rows="3"
+					placeholder="e.g., subtle breath vapor in cold air, soft fabric textures, sparklers emitting warm particles"
+					style="width: 100%; box-sizing: border-box; font-family: inherit;"></textarea><br><br>
+
+				<!-- Negative Prompt -->
+				<h4>🚫 Negative Prompt (What to avoid)</h4>
+				<label for="negativePromptInput">Add comma-separated terms</label><br>
+				<textarea id="negativePromptInput" name="negative_prompt" rows="3"
+					placeholder="e.g., cartoon, distorted face, watermark, extra limbs"
+					style="width: 100%; box-sizing: border-box; font-family: inherit;"></textarea><br><br>
+			</div>
+			<div id="advancedModeInputs" style="margin-top: 2rem; border-top: 1px solid #ddd; padding-top: 1rem;">
+			</div>
+
+
+			<br>
+		</div>
+
+		<br>
+		<br>
+		<h3>Input image(s)</h3>
+		<label for="referenceImages">Reference Image(s):</label>
+
+		<div id="referenceInputsContainer">
+			<div class="reference-input-group">
+				<input type="file" name="referenceImages" multiple accept="image/*" />
+				<div class="image-preview-container"></div>
+			</div>
+		</div>
+		<button type="button" id="addReferenceBtn">➕ Add Another</button>
+
+		<br>
+		<br>
+		<h3>Output options</h3>
+		<!-- Output Ratio -->
+		<label for="ratio">Aspect Ratio:</label>
+		<select id="ratio" name="ratio">
+			<option value="1:1" selected>1:1 (1920x1920)</option>
+			<option value="2:3">2:3 (1280x1920)</option>
+			<option value="3:2">3:2 (1920x1280)</option>
+			<option value="3:4">3:4 (1440x1920)</option>
+			<option value="4:3">4:3 (1920x1440)</option>
+			<option value="4:5">4:5 (1536x1920)</option>
+			<option value="5:4">5:4 (1920x1536)</option>
+			<option value="9:16">9:16 (1072x1920)</option>
+			<option value="16:9">16:9 (1920x1072)</option>
+			<option value="21:9">21:9 (2560x1080)</option>
+		</select>
+
+		<!-- Output Format -->
+		<label for="outputFormat">Output Format:</label>
+		<select id="outputFormat" name="outputFormat">
+			<option value="png" selected>PNG (lossless)</option>
+			<option value="jpeg">JPEG (smaller)</option>
+			<option value="webp">WebP (modern)</option>
+		</select>
+
+		<!-- Transparent Background -->
+		<label>
+			<input type="checkbox" id="transparentBg" name="transparentBg">
+			Transparent background (only for PNG)
+		</label>
+
+		<br>
+
+		<!-- Optional Seed (for reproducibility) -->
+		<label for="seed">Seed (optional, leave blank for random):</label>
+		<input type="number" id="seed" name="seed" placeholder="e.g., 12345" min="0" max="999999">
+
+		<!-- Saffety tolerence -->
+		<label for="safetyTolerance">Tolerance moderation level (0 being most strict, 5 being least strict.):</label>
+		<input type="number" id="safetyTolerance" name="safetyTolerance" placeholder="e.g., 2" min="0" max="5"
+			value="5">
+
+		<br>
+		<br>
+
+		<button type="submit">📄 Generate</button>
+	</form>
+
+	<div class="result-container" id="result"></div>
+
+
+	<script>
+		document.getElementById('genForm').addEventListener('submit', async e => {
+			e.preventDefault();
+			const formData = new FormData(e.target);
+
+			// Prevent history access during generation
+			document.getElementById('history').onclick = function () {
+				return false;
+			};
+			document.querySelector('button[type="submit"]').disabled = true;
+
+			const res = await fetch('/generate', {
+				method: 'POST',
+				body: formData
+			});
+
+			const data = await res.json();
+
+			if (data.success) {
+				const html = data.urls.map((url, i) =>
+					`<img src="${url}" alt="Generated image #${i + 1}" loading="lazy">`).join('');
+				document.getElementById('result').innerHTML = `
+					<h3>✨ Generated Images</h3>${html}`;
+			} else {
+				alert("⚠ Error: " + data.error);
+			}
+
+			document.getElementById('history').onclick = null;
+			document.querySelector('button[type="submit"]').disabled = false;
+		});
+
+		function handleFileInputChange(inputEl) {
+			const container = inputEl.nextElementSibling; // image-preview-container
+			container.innerHTML = ""; // clear previous previews
+
+			const files = inputEl.files;
+
+			if (files) {
+				for (let i = 0; i < files.length; i++) {
+					const file = files[i];
+					if (!file.type.startsWith("image/")) continue;
+
+					const reader = new FileReader();
+					reader.onload = function (e) {
+						const previewWrapper = document.createElement("div");
+						previewWrapper.className = "image-preview-wrapper";
+
+						const img = document.createElement("img");
+						img.src = e.target.result;
+						img.alt = file.name;
+
+						const removeBtn = document.createElement("button");
+						removeBtn.innerHTML = "✕";
+						removeBtn.onclick = () => {
+							// Remove from file list (not directly supported, recreate FileList)
+							removeImageFromFileInput(inputEl, file);
+							handleFileInputChange(inputEl); // re-render preview
+						};
+
+						previewWrapper.appendChild(img);
+						previewWrapper.appendChild(removeBtn);
+						container.appendChild(previewWrapper);
+					};
+					reader.readAsDataURL(file);
+				}
+			}
+		}
+
+		function removeImageFromFileInput(inputEl, fileToRemove) {
+			const dt = new DataTransfer();
+			const files = inputEl.files;
+
+			for (let i = 0; i < files.length; i++) {
+				if (files[i] !== fileToRemove) {
+					dt.items.add(files[i]);
+				}
+			}
+
+			inputEl.files = dt.files;
+		}
+
+		document.getElementById("addReferenceBtn").addEventListener("click", () => {
+			const container = document.getElementById("referenceInputsContainer");
+			const newGroup = document.createElement("div");
+			newGroup.className = "reference-input-group";
+
+			const newInput = document.createElement("input");
+			newInput.type = "file";
+			newInput.name = "referenceImages";
+			newInput.multiple = true;
+			newInput.accept = "image/*";
+
+			newInput.onchange = () => handleFileInputChange(newInput);
+
+			const previewContainer = document.createElement("div");
+			previewContainer.className = "image-preview-container";
+
+			newGroup.appendChild(newInput);
+			newGroup.appendChild(previewContainer);
+			container.appendChild(newGroup);
+		});
+		document.querySelectorAll('input[name="referenceImages"]').forEach(input => {
+			input.onchange = () => handleFileInputChange(input);
+		});
+	</script>
+
+	<script>
+		const modelSelect = document.getElementById('model');
+		// Fetch and populate model dropdown
+		document.addEventListener('DOMContentLoaded', async () => {
+			try {
+				const res = await fetch('/api/models');
+				const models = await res.json();
+
+				modelSelect.innerHTML = '';
+				models.forEach(m => {
+					const opt = document.createElement('option');
+					opt.value = m.value;
+					opt.textContent = m.label;
+					modelSelect.appendChild(opt);
+				});
+
+				// Set default selection (e.g., Flux 2 Pro)
+				const defaultModel = models.find(m => m.value === 'flux-2-pro');
+				if (defaultModel) {
+					modelSelect.value = defaultModel.value;
+				}
+
+				// Update description on change
+				modelSelect.addEventListener('change', () => {
+					const selected = models.find(m => m.value === modelSelect.value);
+				});
+
+			} catch (err) {
+				console.error('Failed to load models:', err);
+				modelSelect.innerHTML = '<option value="">❌ Failed to load models</option>';
+			}
+		});
+
+		modelSelect.addEventListener('change', () => {
+
+			if (modelSelect.value.includes('flex')) {
+				document.getElementById('guidance').type = "text";
+				document.getElementById('steps').type = "text";
+				document.getElementById('guidanceLabel').style.display = "block";
+				document.getElementById('stepsLabel').style.display = "block";
+			} else {
+				document.getElementById('guidance').type = "hidden";
+				document.getElementById('steps').type = "hidden";
+				document.getElementById('guidanceLabel').style.display = "none";
+				document.getElementById('stepsLabel').style.display = "none";
+			}
+		});
+
+	</script>
+
+	<script>
+		document.getElementById('styleSelection').addEventListener('change', () => {
+			if (document.getElementById('styleSelection').value === "") {
+				document.getElementById('styleInput').type = "text";
+			} else {
+				document.getElementById('styleInput').type = "hidden";
+			}
+
+			if (document.getElementById('styleSelection').value === "auto") {
+				document.getElementById('styleInput').value = "";
+			} else {
+				document.getElementById('styleInput').value = document.getElementById('styleSelection').value;
+			}
+
+		});
+
+		document.getElementById('moodSuggestions').addEventListener('change', () => {
+			if (document.getElementById('moodSuggestions').value === "") {
+				document.getElementById('moodInput').type = "text";
+			} else {
+				document.getElementById('moodInput').type = "hidden";
+			}
+
+			if (document.getElementById('moodSuggestions').value === "auto") {
+				document.getElementById('moodInput').value = "";
+			} else {
+				document.getElementById('moodInput').value = document.getElementById('moodSuggestions').value;
+			}
+		});
+	</script>
+
+	<script>
+		const mode = document.getElementById('mode');
+		mode.value = "normal";
+
+		// Toggle advanced builder
+		document.getElementById('usePromptBuilder').addEventListener('click', () => {
+			const builder = document.getElementById('promptBuilderForm');
+			const promptDiv = document.getElementById('promptDiv');
+
+			mode.value = mode.value === 'normal' ? 'advanced' : 'normal';
+
+			builder.style.display = builder.style.display === 'none' ? 'block' : 'none';
+		});
+
+
+		// Initialize swatches on load (optional default colors)
+		document.addEventListener('DOMContentLoaded', () => {
+			// Optional: load last-used palette from localStorage
+			const savedPalette = localStorage.getItem('fluxColorPalette');
+			if (savedPalette) {
+				setPaletteFromHex(savedPalette);
+			}
+
+			// Handle swatch clicks
+			document.querySelectorAll('.swatch').forEach((swatch, idx) => {
+				swatch.addEventListener('click', () => {
+					// Create a temporary color input
+					const picker = document.createElement('input');
+					picker.type = 'color';
+					picker.value = '#000000'; // default
+
+					// On pick
+					picker.oninput = (e) => {
+						const color = e.target.value;
+						swatch.style.backgroundColor = color;
+						swatch.style.borderColor = color === '#000000' ? '#ccc' : 'transparent';
+						swatch.title = `${color} (click to change)`;
+						swatch.dataset.hex = color;
+
+						// Update hidden field
+						updateColorPaletteHex();
+					};
+
+					// Trigger native color picker
+					picker.click();
+				});
+			});
+
+			// Helper: set all swatches from hex array
+			function setPaletteFromHex(hexes) {
+				const swatches = document.querySelectorAll('.swatch');
+				hexes.forEach((hex, i) => {
+					if (swatches[i]) {
+						swatches[i].style.backgroundColor = hex;
+						swatches[i].style.borderColor = hex === '#000000' ? '#ccc' : 'transparent';
+						swatches[i].dataset.hex = hex;
+					}
+				});
+				updateColorPaletteHex();
+			}
+
+			// Helper: build final hex array string
+			function updateColorPaletteHex() {
+				const hexes = Array.from(document.querySelectorAll('.swatch'))
+					.map(s => s.dataset.hex || '')
+					.filter(hex => hex); // ignore empty
+				document.getElementById('colorPaletteHex').value = JSON.stringify(hexes);
+				document.getElementById('colors').value = JSON.stringify(hexes);
+			}
+		});
+	</script>
+
+</body>
+
+</html>
