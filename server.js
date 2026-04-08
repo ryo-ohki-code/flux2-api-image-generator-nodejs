@@ -1,4 +1,4 @@
-// app.js — BFL AI version (drop-in for your existing HTML)
+// server.js - BFL AI - Flux 2
 import express from 'express';
 import multer from 'multer';
 import path from 'node:path';
