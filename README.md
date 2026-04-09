@@ -2,6 +2,8 @@
 
 A powerful Express.js application that integrates with the [BFL AI API](https://bfl.ai) to generate stunning AI images using the Flux 2 model family. Supports advanced prompt engineering via Ollama, reference image uploads, and detailed configuration options.
 
+**Note:** I noticed sometime if the generation fail, the app do not catches all errors, so if it take took long to get an image, assume it fails.
+
 ---
 
 ## 🚀 Features
