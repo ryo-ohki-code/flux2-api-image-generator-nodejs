@@ -1,4 +1,4 @@
-// server.js - BFL AI - Flux 2
+// app.js — BFL AI version (drop-in for your existing HTML)
 import express from 'express';
 import multer from 'multer';
 import path from 'node:path';
@@ -71,8 +71,8 @@ async function check_server_status() {
 // Map UI model names to BFL endpoints
 const BFL_ENDPOINT_MAP = {
 	'flux.2-pro': '/flux-2-pro',
-	'flux-2-max': '/flux-2-max',
 	'flux-2-flex': '/flux-2-flex',
+	'flux-2-max': '/flux-2-max',
 	'flux-2-pro-preview': '/flux-2-pro-preview',
 };
 
@@ -107,7 +107,10 @@ async function pollForResult(pollingUrl, requestId) {
 
 		const { status, result } = res.data;
 		if (status === 'Ready') return result.sample;
-		if (status === 'Error' || status === 'Failed') {
+		if (status === 'Request Moderated') {
+			throw new Error(`Generation failed: ${JSON.stringify(res.data)}`); // .details["Moderation Reasons"]
+		}
+		if (status === 'Error' || status === 'Failed'  || status === 'Request Moderated') {
 			throw new Error(`Generation failed: ${JSON.stringify(res.data)}`);
 		}
 	}
@@ -334,7 +337,7 @@ app.post('/generate', upload.array('referenceImages'), async (req, res) => {
 			console.error('BFL Error:', error.response?.data || error.message);
 			res.status(500).json({
 				error: 'Failed to generate image',
-				details: error.response?.data || error.message
+				details: error.response?.data || error.message || error.details["Moderation Reasons"]
 			});
 		}
 	} catch (err) {
