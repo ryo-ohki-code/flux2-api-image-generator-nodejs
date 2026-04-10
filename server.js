@@ -57,7 +57,7 @@ let HeaderSimpleWithoutToken = {
 	"Sec-Fetch-Site": "same-site"
 }
 
-async function check_server_status() {
+async function checkServerStatus() {
 	let PingServer = await fetch(OLLAMA_HOST, {
 		"Content-Type": "application/json",
 		"headers": HeaderSimpleWithoutToken,
