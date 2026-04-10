@@ -148,7 +148,7 @@ This project is open-source and available under the [MIT License](LICENSE).
 
 **No cherry pick:** this is the first 4 images generated using this bird prompt.
 
-Prompt for simple mode: 
+### Prompt for simple mode: 
 ```
 A vibrant, adventure movie poster scene featuring an array of exuberant birds from various regions. A Gabon grey parrot, a Cockatoo, a Cockatiel, a Parakeet, and a Starling. The movie title is 'The Parrot Incident' and it subtitle 'A Bird Story'
 ```
@@ -157,7 +157,7 @@ A vibrant, adventure movie poster scene featuring an array of exuberant birds fr
 
 
 
-Prompt for advanced mode (I just moved the title and subtitle in the appropriate input fied):
+### Prompt for advanced mode (I just moved the title and subtitle in the appropriate input fied):
 ```
 A vibrant, adventure movie poster scene featuring an array of exuberant birds from various regions. A Gabon grey parrot, a Cockatoo, a Cockatiel, a Parakeet, and a Starling.
 ```
