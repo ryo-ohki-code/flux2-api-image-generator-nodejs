@@ -178,6 +178,7 @@
 	<br>
 
 	<form id="genForm">
+		<h2>Credits: <span id="credits"></h2>
 		<label for="model">AI Model:</label>
 		<select id="model" name="model">
 			<option value="">Loading models...</option>
@@ -212,7 +213,7 @@
 			<select id="styleSelection" name="style">
 				<option value="">Custom</option>
 				<option value="auto">Auto-select based on scene</option>
-				<option value="Cinematic semi-realistic illustration">Cinematic semi-realistic</option>
+				<!-- <option value="Cinematic semi-realistic illustration">Cinematic semi-realistic</option>
 				<option value="Hyperrealistic 8K">Hyperrealistic 8K</option>
 				<option value="Anime / Illustration">Anime / Illustration</option>
 				<option value="Oil painting">Oil painting</option>
@@ -229,7 +230,7 @@
 				<option value="Art deco">Art deco</option>
 				<option value="Pixel art">Pixel art</option>
 				<option value="Grunge">Grunge</option>
-				<option value="Vintage">Vintage</option>
+				<option value="Vintage">Vintage</option> -->
 				<!-- Add more as needed -->
 			</select><br><br>
 
@@ -244,7 +245,18 @@
 				<option value="joyful, festive, energetic">Joyful, festive, energetic</option>
 				<option value="peaceful, serene, quiet">Peaceful, serene, quiet</option>
 				<option value="epic, cinematic, grand">Epic, cinematic, grand</option>
+				<option value="mysterious, enchanting, magical">Mysterious, enchanting, magical</option>
+				<option value="vintage, nostalgic, romantic">Vintage, nostalgic, romantic</option>
+				<option value="futuristic, cyberpunk, neon">Futuristic, cyberpunk, neon</option>
+				<option value="minimalist, clean, simple">Minimalist, clean, simple</option>
+				<option value="chaotic, intense, frenzied">Chaotic, intense, frenzied</option>
+				<option value="calm, soft, gentle">Calm, soft, gentle</option>
+				<option value="bold, vibrant, colorful">Bold, vibrant, colorful</option>
+				<option value="melancholic, introspective, contemplative">Melancholic, introspective, contemplative</option>
+				<option value="heroic, brave, powerful">Heroic, brave, powerful</option>
+				<option value="whimsical, playful, cute">Whimsical, playful, cute</option>
 			</select><br><br>
+
 
 			<!-- Visual Color Palette Selector -->
 			<label for="colorPalette">Color Palette (optional)</label><br>
@@ -371,7 +383,7 @@
 		<!-- Output Ratio -->
 		<label for="ratio">Aspect Ratio:</label>
 		<select id="ratio" name="ratio">
-			<option value="1:1" selected>1:1 (1920x1920)</option>
+			<!-- <option value="1:1" selected>1:1 (1920x1920)</option>
 			<option value="2:3">2:3 (1280x1920)</option>
 			<option value="3:2">3:2 (1920x1280)</option>
 			<option value="3:4">3:4 (1440x1920)</option>
@@ -380,7 +392,7 @@
 			<option value="5:4">5:4 (1920x1536)</option>
 			<option value="9:16">9:16 (1072x1920)</option>
 			<option value="16:9">16:9 (1920x1072)</option>
-			<option value="21:9">21:9 (2560x1080)</option>
+			<option value="21:9">21:9 (2560x1080)</option> -->
 		</select>
 
 		<!-- Output Format -->
@@ -416,16 +428,57 @@
 
 	<div class="result-container" id="result"></div>
 
-
 	<script>
+		// Load style list from /styles.txt
+		async function loadStylesFromFile() {
+			try {
+				const response = await fetch('/styles.txt');
+				const text = await response.text();
+				const styles = text.split('\n').filter(style => style.trim() !== '');
+
+				const select = document.getElementById('styleSelection');
+				styles.forEach(style => {
+					const option = document.createElement('option');
+					option.value = style.trim();
+					option.textContent = style.trim();
+					select.appendChild(option);
+				});
+			} catch (error) {
+				console.error('Error loading styles:', error);
+			}
+		}
+
+		// Call when page loads
+		window.addEventListener('load', loadStylesFromFile);
+
+		// Display available credits
+		async function displayCredits() {
+			try {
+				const response = await fetch('/credits');
+				const creditsData = await response.json();
+
+				// Display the credits data
+				document.getElementById('credits').textContent = creditsData || 'N/A';
+
+			} catch (error) {
+				console.error('Error fetching credits:', error);
+				document.getElementById('credits').textContent = 'Error loading credits';
+			}
+		}
+		// JavaScript to fetch and display credits when page loads
+		document.addEventListener('DOMContentLoaded', async () => {
+			await displayCredits();
+		});
+
+
 		document.getElementById('genForm').addEventListener('submit', async e => {
 			e.preventDefault();
 			const formData = new FormData(e.target);
 
 			// Prevent history access during generation
-			document.getElementById('history').onclick = function () {
-				return false;
-			};
+			// document.getElementById('history').onclick = function () {
+			// 	return false;
+			// };
 			document.querySelector('button[type="submit"]').disabled = true;
 
 			const res = await fetch('/generate', {
@@ -444,7 +497,9 @@
 				alert("⚠ Error: " + data.error);
 			}
 
-			document.getElementById('history').onclick = null;
+			await displayCredits();
+
+			// document.getElementById('history').onclick = null;
 			document.querySelector('button[type="submit"]').disabled = false;
 		});
 
@@ -522,8 +577,71 @@
 			input.onchange = () => handleFileInputChange(input);
 		});
 	</script>
-
 	<script>
+		const modelSelect = document.getElementById('model');
+		const ratioSelect = document.getElementById('ratio'); // assuming your select has id="ratio"
+
+		document.addEventListener('DOMContentLoaded', async () => {
+			try {
+				const res = await fetch('/api/models');
+				const { models, aspectRatios } = await res.json();
+
+				// Populate model dropdown
+				modelSelect.innerHTML = '';
+				models.forEach(m => {
+					const opt = document.createElement('option');
+					opt.value = m.value;
+					opt.textContent = m.label;
+					modelSelect.appendChild(opt);
+				});
+
+				// Set default selection (e.g., Flux 2 Pro)
+				const defaultModel = models.find(m => m.value === 'flux-2-pro');
+				if (defaultModel) {
+					modelSelect.value = defaultModel.value;
+				}
+
+				// Update description on change
+				modelSelect.addEventListener('change', () => {
+					const selected = models.find(m => m.value === modelSelect.value);
+				});
+
+				// Populate aspect ratio dropdown
+				ratioSelect.innerHTML = '';
+				Object.entries(aspectRatios).forEach(([ratio, dims]) => {
+					const opt = document.createElement('option');
+					opt.value = ratio;
+					opt.textContent = `${ratio} (${dims.width}x${dims.height})`;
+					ratioSelect.appendChild(opt);
+				});
+
+				// Set default aspect ratio (e.g., 1:1)
+				ratioSelect.value = '1:1';
+
+			} catch (err) {
+				console.error('Failed to load models or aspect ratios:', err);
+				modelSelect.innerHTML = '<option value="">❌ Failed to load models</option>';
+				ratioSelect.innerHTML = '<option value="">❌ Failed to load ratios</option>';
+			}
+		});
+
+		modelSelect.addEventListener('change', () => {
+			if (modelSelect.value.includes('flex')) {
+				document.getElementById('guidance').type = "text";
+				document.getElementById('steps').type = "text";
+				document.getElementById('guidanceLabel').style.display = "block";
+				document.getElementById('stepsLabel').style.display = "block";
+			} else {
+				document.getElementById('guidance').type = "hidden";
+				document.getElementById('steps').type = "hidden";
+				document.getElementById('guidanceLabel').style.display = "none";
+				document.getElementById('stepsLabel').style.display = "none";
+			}
+		});
+	</script>
+
+
+	<!-- <script>
 		const modelSelect = document.getElementById('model');
 		// Fetch and populate model dropdown
 		document.addEventListener('DOMContentLoaded', async () => {
@@ -557,7 +675,6 @@
 		});
 
 		modelSelect.addEventListener('change', () => {
-
 			if (modelSelect.value.includes('flex')) {
 				document.getElementById('guidance').type = "text";
 				document.getElementById('steps').type = "text";
@@ -570,8 +687,7 @@
 				document.getElementById('stepsLabel').style.display = "none";
 			}
 		});
-
-	</script>
+	</script> -->
 
 	<script>
 		document.getElementById('styleSelection').addEventListener('change', () => {
