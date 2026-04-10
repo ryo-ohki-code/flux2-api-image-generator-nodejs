@@ -2,8 +2,6 @@
 
 A powerful Express.js application that integrates with the [BFL AI API](https://bfl.ai) to generate stunning AI images using the Flux 2 model family. Supports advanced prompt engineering via Ollama, reference image uploads, and detailed configuration options.
 
-**Note:** I noticed sometime if the generation fail, the app do not catches all errors, so if it take took long to get an image, assume it fails.
-
 ---
 
 ## 🚀 Features
@@ -146,4 +144,55 @@ This project is open-source and available under the [MIT License](LICENSE).
 ---
 
 
+##  Sample images
+
+**No cherry pick:** this is the first 4 images generated using this bird prompt.
+
+Prompt for simple mode: 
+```
+A vibrant, adventure movie poster scene featuring an array of exuberant birds from various regions. A Gabon grey parrot, a Cockatoo, a Cockatiel, a Parakeet, and a Starling. The movie title is 'The Parrot Incident' and it subtitle 'A Bird Story'
+```
+
+![Sample-01](https://github.com/ryo-ohki-code/flux2-api-image-generator-nodejs/blob/main/samples/sample-01.png)
+
+
+
+Prompt for advanced mode (I just moved the title and subtitle in the appropriate input fied):
+```
+A vibrant, adventure movie poster scene featuring an array of exuberant birds from various regions. A Gabon grey parrot, a Cockatoo, a Cockatiel, a Parakeet, and a Starling.
+```
+
+![Sample-02](https://github.com/ryo-ohki-code/flux2-api-image-generator-nodejs/blob/main/samples/sample-02.png)
+Style: Cinematic semirealistic
+Mood: joyful, festive, energic
+Camera angle: Dutch angle
+Lens: 35mm cinematic
+
+
+![Sample-03](https://github.com/ryo-ohki-code/flux2-api-image-generator-nodejs/blob/main/samples/sample-03.png)
+Style: Cyberpunk neon
+Mood: joyful, festive, energic
+Camera angle: Dutch angle
+Lens: 35mm cinematic
+
+
+![Sample-04](https://github.com/ryo-ohki-code/flux2-api-image-generator-nodejs/blob/main/samples/sample-04.png)
+Style: Steampunk
+Mood: joyful, festive, energic
+Camera angle: Dutch angle
+Lens: 35mm cinematic
+
+
+![Sample-05](https://github.com/ryo-ohki-code/flux2-api-image-generator-nodejs/blob/main/samples/sample-05.png)
+Style: Vintage
+Mood: dark, moody, dramatic
+Camera angle: Worm view
+Lens: 35mm cinematic
+
+
+---
+
 Enjoy creating amazing AI-generated images! 🎨✨
+
+
+
