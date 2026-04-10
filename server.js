@@ -405,7 +405,6 @@ app.get('/credits', async (req, res) => {
       }
     });
     
-	console.log(response.data);
 	if(!response.data.credits){
 		throw new Error('Missing credit data');
 	}
