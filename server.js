@@ -1,3 +1,4 @@
+// https://docs.bfl.ml/api-reference/get-the-users-credits
 // app.js — BFL AI version (drop-in for your existing HTML)
 import express from 'express';
 import multer from 'multer';
@@ -106,13 +107,19 @@ async function pollForResult(pollingUrl, requestId) {
 		const res = await axios.get(url, { headers });
 
 		const { status, result } = res.data;
-		if (status === 'Ready') return result.sample;
-		if (status === 'Request Moderated') {
-			throw new Error(`Generation failed: ${JSON.stringify(res.data)}`); // .details["Moderation Reasons"]
+		if(status !=='Ready' && status !=='Pending'){
+			console.log('error', res.data)
+		}
+		if(status ==='Pending'){
+			console.log('Processing image', res.data.id);
 		}
 		if (status === 'Error' || status === 'Failed'  || status === 'Request Moderated') {
 			throw new Error(`Generation failed: ${JSON.stringify(res.data)}`);
 		}
+		if(res.data.details){
+			throw new Error(`Generation failed: ${JSON.stringify(res.data)}`); // .details["Moderation Reasons"]
+		}
+		if (status === 'Ready') return result.sample;
 	}
 }
 
@@ -283,6 +290,7 @@ app.post('/generate', upload.array('referenceImages'), async (req, res) => {
 				disable_pup: mode === 'advanced',
 				transparent_bg: req.body.transparentBg === 'on'
 			};
+			console.log(payload);
 
 			const submitRes = await axios.post(`${BASE_URL}${endpoint}`, payload, {
 				headers: {
@@ -299,6 +307,8 @@ app.post('/generate', upload.array('referenceImages'), async (req, res) => {
 
 			// Step 2: Poll until ready
 			const imageUrl = await pollForResult(pollingUrl, requestId);
+
+			console.log('Url:', pollingUrl);
 
 			// Step 3: Download image locally
 			const timestamp = Date.now();
@@ -380,7 +390,34 @@ app.get('/api/models', (req, res) => {
 		value,
 		label: value.replace('.', ' ').replace(/-/g, ' ')
 	}));
-	res.json(models);
+
+	const aspectRatios = ASPECT_RATIO_DIMS;
+
+	res.json({ models, aspectRatios });
+});
+
+// GET route to return credits data
+app.get('/credits', async (req, res) => {
+  try {
+    const response = await axios.get(`${BASE_URL}/credits`, {
+      headers: {
+        'x-key': BFL_API_KEY
+      }
+    });
+    
+	console.log(response.data);
+	if(!response.data.credits){
+		throw new Error('Missing credit data');
+	}
+
+    res.json(response.data.credits);
+  } catch (error) {
+    console.error('Error fetching credits:', error);
+    res.status(500).json({ 
+      error: 'Failed to fetch credits data',
+      message: error.response?.data?.message || error.message 
+    });
+  }
 });
 
 
