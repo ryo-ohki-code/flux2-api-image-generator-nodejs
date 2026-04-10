@@ -163,31 +163,31 @@ A vibrant, adventure movie poster scene featuring an array of exuberant birds fr
 ```
 
 ![Sample-02](https://github.com/ryo-ohki-code/flux2-api-image-generator-nodejs/blob/main/samples/sample-02.png)
-Style: Cinematic semirealistic
-Mood: joyful, festive, energic
-Camera angle: Dutch angle
-Lens: 35mm cinematic
+- Style: Cinematic semirealistic
+- Mood: joyful, festive, energic
+- Camera angle: Dutch angle
+- Lens: 35mm cinematic
 
 
 ![Sample-03](https://github.com/ryo-ohki-code/flux2-api-image-generator-nodejs/blob/main/samples/sample-03.png)
-Style: Cyberpunk neon
-Mood: joyful, festive, energic
-Camera angle: Dutch angle
-Lens: 35mm cinematic
+- Style: Cyberpunk neon
+- Mood: joyful, festive, energic
+- Camera angle: Dutch angle
+- Lens: 35mm cinematic
 
 
 ![Sample-04](https://github.com/ryo-ohki-code/flux2-api-image-generator-nodejs/blob/main/samples/sample-04.png)
-Style: Steampunk
-Mood: joyful, festive, energic
-Camera angle: Dutch angle
-Lens: 35mm cinematic
+- Style: Steampunk
+- Mood: joyful, festive, energic
+- Camera angle: Dutch angle
+- Lens: 35mm cinematic
 
 
 ![Sample-05](https://github.com/ryo-ohki-code/flux2-api-image-generator-nodejs/blob/main/samples/sample-05.png)
-Style: Vintage
-Mood: dark, moody, dramatic
-Camera angle: Worm view
-Lens: 35mm cinematic
+- Style: Vintage
+- Mood: dark, moody, dramatic
+- Camera angle: Worm view
+- Lens: 35mm cinematic
 
 
 ---
