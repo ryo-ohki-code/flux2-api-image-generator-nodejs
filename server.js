@@ -100,6 +100,7 @@ async function pollForResult(pollingUrl, requestId) {
 
 	// Use pollingUrl if provided (preferred), else construct fallback
 	const url = pollingUrl || `${BASE_URL}/get?requestId=${requestId}`;
+	let hasLoggedPending = false;
 
 	while (true) {
 		await new Promise(r => setTimeout(r, 500)); // 0.5s delay
@@ -107,16 +108,17 @@ async function pollForResult(pollingUrl, requestId) {
 		const res = await axios.get(url, { headers });
 
 		const { status, result } = res.data;
-		if(status !=='Ready' && status !=='Pending'){
+		if (status !== 'Ready' && status !== 'Pending') {
 			console.log('error', res.data)
 		}
-		if(status ==='Pending'){
-			console.log('Processing image', res.data.id);
+		if (status === 'Pending' && !hasLoggedPending) {
+			console.log('Generating image', res.data.id);
+			hasLoggedPending = true;
 		}
-		if (status === 'Error' || status === 'Failed'  || status === 'Request Moderated') {
+		if (status === 'Error' || status === 'Failed' || status === 'Request Moderated') {
 			throw new Error(`Generation failed: ${JSON.stringify(res.data)}`);
 		}
-		if(res.data.details){
+		if (res.data.details) {
 			throw new Error(`Generation failed: ${JSON.stringify(res.data)}`); // .details["Moderation Reasons"]
 		}
 		if (status === 'Ready') return result.sample;
@@ -171,7 +173,7 @@ Given a user's natural-language scene description and optional preferences, gene
 
 	LLM_Promt += `
 - "scene": expanded vivid description (keep concise but evocative)
-- "subjects": array of objet like: {description: "detailled descriptionof the scene", position: "position of elements", action: "action description"}
+- "subjects": array of objet like: {description: "detailled description of the scene or element", position: "position of elements", action: "action description"}
 - "style": visual style (e.g., "cinematic semi-realistic illustration")
 - "color_palette": array of 3–5 hex codes (prioritize mood-appropriate palettes)
 - "lighting": describe light sources, quality, contrast (e.g., "soft moonlight + warm sparkler glow")
@@ -234,6 +236,7 @@ Optional: Style = "${style}", Mood = "${mood}", Colors = ${colors}
 
 // --- Main generation route (with BFL input_image support) ---
 app.post('/generate', upload.array('referenceImages'), async (req, res) => {
+	console.log('Request received');
 	try {
 		let prompt;
 		const { mode, ratio, model } = req.body;
@@ -242,6 +245,7 @@ app.post('/generate', upload.array('referenceImages'), async (req, res) => {
 		prompt = req.body.prompt;
 
 		if (mode === 'advanced') {
+			console.log('Generating advanced prompt');
 			prompt = await generateAdvancedPrompt(req.body);
 		}
 
@@ -255,10 +259,19 @@ app.post('/generate', upload.array('referenceImages'), async (req, res) => {
 			return res.status(400).json({ error: `Unsupported model: ${model}` });
 		}
 
-		const { width, height } = ASPECT_RATIO_DIMS[ratio] || { width: 1440, height: 2048 };
+		let imageWidth, imageHeight;
+		if (ratio === 'custom') {
+			const { customWidth, customHeight } = req.body;
+			imageWidth = Number(customWidth);
+			imageHeight = Number(customHeight);
+		} else {
+			const { width, height } = ASPECT_RATIO_DIMS[ratio] || { width: 1440, height: 2048 };
+			imageWidth = Number(width);
+			imageHeight = Number(height);
+		}
 
 		let guidance, steps;
-		if(model.includes("flex")){
+		if (model.includes("flex")) {
 			guidance = Number(req.body.guidance) || 5;
 			steps = Number(req.body.steps) || 50;
 		}
@@ -279,8 +292,8 @@ app.post('/generate', upload.array('referenceImages'), async (req, res) => {
 			// Build payload — include input_image_* fields only if images provided
 			const payload = {
 				prompt,
-				width,
-				height,
+				width: imageWidth,
+				height: imageHeight,
 				seed: req.body.seed ? parseInt(req.body.seed, 10) : Math.floor(Math.random() * 1000000),
 				...inputImages,
 				output_format: req.body.outputFormat || 'png',
@@ -290,7 +303,8 @@ app.post('/generate', upload.array('referenceImages'), async (req, res) => {
 				disable_pup: mode === 'advanced',
 				transparent_bg: req.body.transparentBg === 'on'
 			};
-			console.log(payload);
+
+			console.log('Calling BFL API');
 
 			const submitRes = await axios.post(`${BASE_URL}${endpoint}`, payload, {
 				headers: {
@@ -308,7 +322,7 @@ app.post('/generate', upload.array('referenceImages'), async (req, res) => {
 			// Step 2: Poll until ready
 			const imageUrl = await pollForResult(pollingUrl, requestId);
 
-			console.log('Url:', pollingUrl);
+			console.log(`Done\nUrl: ${pollingUrl}\n`);
 
 			// Step 3: Download image locally
 			const timestamp = Date.now();
@@ -320,7 +334,7 @@ app.post('/generate', upload.array('referenceImages'), async (req, res) => {
 				prompt,
 				ratio,
 				model,
-				aspect: { width, height },
+				aspect: { width: imageWidth, height: imageHeight },
 				timestamp,
 				bfl_request_id: requestId,
 				referenceImagesUsed: Math.min(uploadedFiles.length, 8)
@@ -398,25 +412,25 @@ app.get('/api/models', (req, res) => {
 
 // GET route to return credits data
 app.get('/credits', async (req, res) => {
-  try {
-    const response = await axios.get(`${BASE_URL}/credits`, {
-      headers: {
-        'x-key': BFL_API_KEY
-      }
-    });
-    
-	if(!response.data.credits){
-		throw new Error('Missing credit data');
-	}
+	try {
+		const response = await axios.get(`${BASE_URL}/credits`, {
+			headers: {
+				'x-key': BFL_API_KEY
+			}
+		});
 
-    res.json(response.data.credits);
-  } catch (error) {
-    console.error('Error fetching credits:', error);
-    res.status(500).json({ 
-      error: 'Failed to fetch credits data',
-      message: error.response?.data?.message || error.message 
-    });
-  }
+		if (!response.data.credits) {
+			throw new Error('Missing credit data');
+		}
+
+		res.json(response.data.credits);
+	} catch (error) {
+		console.error('Error fetching credits:', error);
+		res.status(500).json({
+			error: 'Failed to fetch credits data',
+			message: error.response?.data?.message || error.message
+		});
+	}
 });
 
 
