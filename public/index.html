@@ -190,10 +190,12 @@
 		<input type="hidden" name="steps" id="steps" placeholder="Steps 1-50" value="">
 
 		<label for="prompt">Prompt:</label>
-		<textarea id="prompt" name="prompt" rows="7" placeholder="Describe what you'd like to generate..."
-			required></textarea>
+		<textarea id="prompt" name="prompt" rows="7"
+			placeholder="Describe what you'd like to generate: Subject + Action + Style + Context" required></textarea>
 
-		<!-- New: Advanced Prompt Builder Section -->
+		<p>E.g.: Red fox (Subject) sitting in tall grass (Action), wildlife photography (Style), misty dawn (Context)</p>
+
+		<!-- Advanced Prompt Builder Section -->
 		<div id="advancedPromptToggle">
 			<button type="button" id="usePromptBuilder" class="secondary-btn">
 				✨ Show Advanced Options
@@ -209,10 +211,10 @@
 
 			<!-- Optional: Style -->
 			<label for="styleInput">Style (optional)</label><br>
-			<input type="text" id="styleInput" name="mood" placeholder="e.g., warm, reflective, joyful, mysterious">
+			<input type="hidden" id="styleInput" name="mood" placeholder="e.g., warm, reflective, joyful, mysterious">
 			<select id="styleSelection" name="style">
-				<option value="">Custom</option>
 				<option value="auto">Auto-select based on scene</option>
+				<option value="">Custom</option>
 				<!-- <option value="Cinematic semi-realistic illustration">Cinematic semi-realistic</option>
 				<option value="Hyperrealistic 8K">Hyperrealistic 8K</option>
 				<option value="Anime / Illustration">Anime / Illustration</option>
@@ -231,15 +233,14 @@
 				<option value="Pixel art">Pixel art</option>
 				<option value="Grunge">Grunge</option>
 				<option value="Vintage">Vintage</option> -->
-				<!-- Add more as needed -->
 			</select><br><br>
 
 			<!-- Optional: Mood -->
 			<label for="moodInput">Mood / Emotion</label><br>
-			<input type="text" id="moodInput" name="mood" placeholder="e.g., warm, reflective, joyful, mysterious">
+			<input type="hidden" id="moodInput" name="mood" placeholder="e.g., warm, reflective, joyful, mysterious">
 			<select id="moodSuggestions">
-				<option value="">Custom</option>
 				<option value="auto">Auto-select based on scene</option>
+				<option value="">Custom</option>
 				<option value="warm, intimate, hopeful">Warm, intimate, hopeful</option>
 				<option value="dark, moody, dramatic">Dark, moody, dramatic</option>
 				<option value="joyful, festive, energetic">Joyful, festive, energetic</option>
@@ -263,9 +264,8 @@
 			<div id="colorPalette" style="display: flex; flex-direction: column; gap: 0.5rem;">
 				<!-- Visual swatches -->
 				<div id="colorSwatches" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-					<!-- Pre-filled empty swatches (4 max) -->
 					<input type="hidden" id="colors" name="colors">
-
+					<!-- Pre-filled empty swatches (4 max) -->
 					<div class="swatch"
 						style="width: 50px; height: 50px; border-radius: 6px; border: 2px solid #ccc; cursor: pointer; position: relative;"
 						data-index="0" title="Click to pick color"></div>
@@ -282,8 +282,6 @@
 
 				<!-- Hidden field to store hex codes -->
 				<input type="hidden" id="colorPaletteHex" name="colorPalette" value="">
-
-
 			</div>
 
 			<!-- Advanced Mode Inputs -->
@@ -307,31 +305,56 @@
 					<option value="eye-level">Eye-level</option>
 					<option value="low-angle">Low-angle (heroic/empowering)</option>
 					<option value="high-angle">High-angle (vulnerable/observational)</option>
-					<option value=" Dutch angle">Dutch angle (dynamic/tense)</option>
+					<option value="dutch-angle">Dutch angle (dynamic/tense)</option>
 					<option value="close-up">Close-up (intimate)</option>
 					<option value="wide shot">Wide shot (context/environment)</option>
 					<option value="over-the-shoulder">Over-the-Shoulder (conversation/conflict)</option>
 					<option value="bird's-eye-view">Bird's-Eye View (all-seeing/watching)</option>
 					<option value="worm's-eye-view">Worm's-Eye View (humble/powerless)</option>
+					<option value="tracking shot">Tracking Shot (movement/progression)</option>
+					<option value="panning shot">Panning Shot (wide view/landscape)</option>
+					<option value="tilt shot">Tilt Shot (up/down motion)</option>
+					<option value="low-angle-extended">Low-angle Extended (dramatic/heroic)</option>
+					<option value="high-angle-extended">High-angle Extended (overwhelming/observational)</option>
+					<option value="point-of-view">Point of View (immersive/first-person)</option>
+					<option value="crane shot">Crane Shot (elevated perspective)</option>
+					<option value="handheld">Handheld (dynamic/realistic)</option>
+					<option value="static shot">Static Shot (stable/focused)</option>
 				</select><br><br>
+
 
 				<label for="cameraLens">Lens / Perspective</label><br>
 				<select id="cameraLens" name="camera_lens">
 					<option value="">Auto-select</option>
+					<option value="14mm ultra-wide">14mm ultra-wide (extreme wide, dramatic perspective)</option>
+					<option value="24mm wide">24mm wide (landscape, architectural)</option>
 					<option value="35mm cinematic">35mm cinematic (slight distortion, immersive)</option>
+					<option value="35mm wide-angle">35mm wide-angle (street photography, wide scenes)</option>
 					<option value="50mm standard">50mm standard (natural perspective)</option>
+					<option value="50mm prime">50mm prime (sharp, natural field of view)</option>
 					<option value="85mm portrait">85mm portrait (compressed, shallow DOF)</option>
+					<option value="100mm macro">100mm macro (extreme close-up, detail)</option>
+					<option value="135mm telephoto">135mm telephoto (professional portrait, compression)</option>
+					<option value="200mm telephoto">200mm telephoto (distant subjects, compression)</option>
+					<option value="24-70mm zoom">24-70mm zoom (versatile standard range)</option>
+					<option value="70-200mm zoom">70-200mm zoom (versatile telephoto range)</option>
 					<option value="fisheye">Fisheye (extreme wide, curved)</option>
 					<option value="tilt-shift">Tilt-shift (miniature effect)</option>
 					<option value="telephoto">Telephoto (compressed background, isolated subject)</option>
 				</select><br><br>
 
+
 				<label for="cameraDistance">Camera Distance</label><br>
 				<select id="cameraDistance" name="camera_distance">
 					<option value="">Auto-select</option>
-					<option value="close-up">Close-up</option>
-					<option value="medium">Medium</option>
-					<option value="long">Long</option>
+					<option value="close-up">Close-up (Focusing on the subject)</option>
+					<option value="extreme-close-up">Extreme close-up (Macro)</option>
+					<option value="medium">Medium (Provide a balance between subject and environment)</option>
+					<option value="medium-long">Medium-Long</option>
+					<option value="long">Long (Full body and surrounding environment)</option>
+					<option value="very-long">Very Long (Subject is very far away)</option>
+					<option value="wide-shot">Wide Shot (Entire subject and its surroundings)</option>
+					<option value="subject-point-of-view">Point of View (what the subject is seeing)</option>
 
 				</select><br><br>
 
@@ -380,6 +403,7 @@
 		<br>
 		<br>
 		<h3>Output options</h3>
+
 		<!-- Output Ratio -->
 		<label for="ratio">Aspect Ratio:</label>
 		<select id="ratio" name="ratio">
@@ -394,6 +418,9 @@
 			<option value="16:9">16:9 (1920x1072)</option>
 			<option value="21:9">21:9 (2560x1080)</option> -->
 		</select>
+
+		<input type="hidden" id="ratioWidth" name="width" placeholder="Width (px)">
+		<input type="hidden" id="ratioHeight" name="height" placeholder="Height (px)">
 
 		<!-- Output Format -->
 		<label for="outputFormat">Output Format:</label>
@@ -428,6 +455,7 @@
 
 	<div class="result-container" id="result"></div>
 
+	
 	<script>
 		// Load style list from /styles.txt
 		async function loadStylesFromFile() {
@@ -470,15 +498,10 @@
 			await displayCredits();
 		});
 
-
 		document.getElementById('genForm').addEventListener('submit', async e => {
 			e.preventDefault();
 			const formData = new FormData(e.target);
 
-			// Prevent history access during generation
-			// document.getElementById('history').onclick = function () {
-			// 	return false;
-			// };
 			document.querySelector('button[type="submit"]').disabled = true;
 
 			const res = await fetch('/generate', {
@@ -499,7 +522,6 @@
 
 			await displayCredits();
 
-			// document.getElementById('history').onclick = null;
 			document.querySelector('button[type="submit"]').disabled = false;
 		});
 
@@ -577,6 +599,7 @@
 			input.onchange = () => handleFileInputChange(input);
 		});
 	</script>
+
 	<script>
 		const modelSelect = document.getElementById('model');
 		const ratioSelect = document.getElementById('ratio'); // assuming your select has id="ratio"
@@ -615,6 +638,13 @@
 					ratioSelect.appendChild(opt);
 				});
 
+				// Custom
+				const opt = document.createElement('option');
+				opt.value = 'custom';
+				opt.textContent = "Custom";
+				ratioSelect.appendChild(opt);
+
+
 				// Set default aspect ratio (e.g., 1:1)
 				ratioSelect.value = '1:1';
 
@@ -622,6 +652,16 @@
 				console.error('Failed to load models or aspect ratios:', err);
 				modelSelect.innerHTML = '<option value="">❌ Failed to load models</option>';
 				ratioSelect.innerHTML = '<option value="">❌ Failed to load ratios</option>';
+			}
+		});
+
+		ratioSelect.addEventListener('change', () => {
+			if (ratioSelect.value === 'custom') {
+				document.getElementById('ratioWidth').type = "text";
+				document.getElementById('ratioHeight').type = "text";
+			} else {
+				document.getElementById('ratioWidth').type = "hidden";
+				document.getElementById('ratioHeight').type = "hidden";
 			}
 		});
 
@@ -639,55 +679,6 @@
 			}
 		});
 	</script>
-
-
-	<!-- <script>
-		const modelSelect = document.getElementById('model');
-		// Fetch and populate model dropdown
-		document.addEventListener('DOMContentLoaded', async () => {
-			try {
-				const res = await fetch('/api/models');
-				const models = await res.json();
-
-				modelSelect.innerHTML = '';
-				models.forEach(m => {
-					const opt = document.createElement('option');
-					opt.value = m.value;
-					opt.textContent = m.label;
-					modelSelect.appendChild(opt);
-				});
-
-				// Set default selection (e.g., Flux 2 Pro)
-				const defaultModel = models.find(m => m.value === 'flux-2-pro');
-				if (defaultModel) {
-					modelSelect.value = defaultModel.value;
-				}
-
-				// Update description on change
-				modelSelect.addEventListener('change', () => {
-					const selected = models.find(m => m.value === modelSelect.value);
-				});
-
-			} catch (err) {
-				console.error('Failed to load models:', err);
-				modelSelect.innerHTML = '<option value="">❌ Failed to load models</option>';
-			}
-		});
-
-		modelSelect.addEventListener('change', () => {
-			if (modelSelect.value.includes('flex')) {
-				document.getElementById('guidance').type = "text";
-				document.getElementById('steps').type = "text";
-				document.getElementById('guidanceLabel').style.display = "block";
-				document.getElementById('stepsLabel').style.display = "block";
-			} else {
-				document.getElementById('guidance').type = "hidden";
-				document.getElementById('steps').type = "hidden";
-				document.getElementById('guidanceLabel').style.display = "none";
-				document.getElementById('stepsLabel').style.display = "none";
-			}
-		});
-	</script> -->
 
 	<script>
 		document.getElementById('styleSelection').addEventListener('change', () => {
@@ -733,7 +724,6 @@
 
 			builder.style.display = builder.style.display === 'none' ? 'block' : 'none';
 		});
-
 
 		// Initialize swatches on load (optional default colors)
 		document.addEventListener('DOMContentLoaded', () => {
