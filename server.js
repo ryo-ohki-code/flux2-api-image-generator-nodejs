@@ -1,11 +1,11 @@
-// https://docs.bfl.ml/api-reference/get-the-users-credits
-// app.js — BFL AI version (drop-in for your existing HTML)
+// app.js - BFL AI version
 import express from 'express';
 import multer from 'multer';
 import path from 'node:path';
 import fs from 'node:fs/promises';
 import axios from 'axios';
 import sharp from 'sharp';
+import JSON5 from 'json5'
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -115,7 +115,7 @@ async function pollForResult(pollingUrl, requestId) {
 			console.log('Generating image', res.data.id);
 			hasLoggedPending = true;
 		}
-		if (status === 'Error' || status === 'Failed' || status === 'Request Moderated') {
+		if (status === 'Error' || status === 'Failed' || status === 'Request Moderated' || status === 'Content Moderated' || status === 'Task not found') {
 			throw new Error(`Generation failed: ${JSON.stringify(res.data)}`);
 		}
 		if (res.data.details) {
@@ -154,12 +154,12 @@ async function encodeImageToBase64(filePath, maxDimension = 1024) {
 	return buffer.toString('base64');
 }
 
-
+// Note: Flux.2 do not support negative prompt remove commented section to enable it.
 async function generateAdvancedPrompt(data) {
-	const { prompt, style, mood, colors, details, negative_prompt, camera_angle, camera_lens, depth_of_field, camera_distance, title, subtitle } = data;
+	const { prompt, style, mood, colors, details, camera_angle, camera_lens, depth_of_field, camera_distance, title, subtitle } = data;
 
 	const arrayDetails = details.split(',');
-	const arrayNegativePrompt = negative_prompt.split(',');
+	// const arrayNegativePrompt = negative_prompt.split(',');
 
 	let LLM_Promt = `You are an expert prompt engineer for AI image generation (Flux 2). 
 Given a user's natural-language scene description and optional preferences, generate a complete, valid JSON object with the following keys:
@@ -188,15 +188,15 @@ Given a user's natural-language scene description and optional preferences, gene
 	if (Array.isArray(arrayDetails) && arrayDetails.length > 0) {
 		LLM_Promt += `\n- "details": array of 4–7 subtle visual elements that enhance realism (e.g., ["subtle breath vapor", "soft fabric textures"])`;
 	}
-	if (Array.isArray(arrayNegativePrompt) && arrayNegativePrompt.length > 0) {
-		LLM_Promt += `\n- "negative_prompt": array of 6–10 items to avoid (e.g., ["cartoon style", "text", "distorted faces"])`;
-	}
+	// if (Array.isArray(arrayNegativePrompt) && arrayNegativePrompt.length > 0) {
+	// 	LLM_Promt += `\n- "negative_prompt": array of 6–10 items to avoid (e.g., ["cartoon style", "text", "distorted faces"])`;
+	// }
 
 	LLM_Promt += `\n
 Rules:
 - Use ONLY the user's input as context. Do not invent unrelated elements.
 - Prioritize coherence, realism, and emotional resonance.
-- Output ONLY valid JSON — no markdown, no explanations.
+- Output ONLY valid JSON - no markdown, no explanations.
 - Avoid hallucinations: only add details implied or strongly suggested by the input.
 
 User input:
@@ -215,9 +215,9 @@ Optional: Style = "${style}", Mood = "${mood}", Colors = ${colors}
 		LLM_Promt += `\nDetails = ${arrayDetails}`;
 	}
 
-	if (Array.isArray(arrayNegativePrompt) && arrayNegativePrompt.length > 0) {
-		LLM_Promt += `\nNegative Prompt = ${arrayNegativePrompt}`;
-	}
+	// if (Array.isArray(arrayNegativePrompt) && arrayNegativePrompt.length > 0) {
+	// 	LLM_Promt += `\nNegative Prompt = ${arrayNegativePrompt}`;
+	// }
 
 	if (camera_angle !== '' || camera_lens !== '' || depth_of_field !== '') {
 		LLM_Promt += `\nCamera setting: Angle = "${camera_angle}", Lens = "${camera_lens}", Distance: ${camera_distance}, Focus = ${depth_of_field}`
@@ -234,6 +234,101 @@ Optional: Style = "${style}", Mood = "${mood}", Colors = ${colors}
 }
 
 
+function safeText(text) {
+	try {
+		// Clean the text first
+		let cleanText = text.replace(/```json/g, '').replace(/```JSON/g, '').replace(/```/g, '')
+			.replace(/«/g, "'")
+			.replace(/»/g, "'")
+			.replace(/“/g, "'")
+			.replace(/”/g, "'")
+			.replace(/’/g, "'")
+			.replace(/\\'/g, "'")
+			.replace(/\\n/g, ' ')
+			.replace(/[\r\n\t]/g, ' ')
+			.replace(/\s+/g, ' ')
+			.trim();
+
+		return cleanText;
+	} catch (e) {
+		console.error('Failed to clean JSON:', e);
+		return null;
+	}
+}
+
+function extractJsonObject(text) {
+  try {
+    const sanitizedText = safeText(text);
+    const jsonMatch = sanitizedText.match(/\{.*\}/s);
+
+    if (jsonMatch) {
+      const trimmedMatch = jsonMatch[0].trim();
+      
+      // Check if it's an empty object
+      if (trimmedMatch === "{}") {
+        return {};
+      }
+
+      // Parse the object
+      const obj = JSON5.parse(jsonMatch[0]);
+
+      if (!obj.subjects || !Array.isArray(obj.subjects)) {
+        console.log('Missing or invalid "subjects" field');
+        return {};
+      }
+      
+      // Validate color_palette (should be an array)
+      if (obj.color_palette !== undefined && (!Array.isArray(obj.color_palette) || !obj.color_palette.every(item => typeof item === 'string'))) {
+        console.log('Invalid "color_palette" field - should be an array of strings');
+        return {};
+      }
+      
+      // Validate camera (should be an object)
+      if (obj.camera !== undefined && (typeof obj.camera !== 'object' || obj.camera === null)) {
+        console.log('Invalid "camera" field - should be an object');
+        return {};
+      }
+      
+      // Validate details (should be an array)
+      if (obj.details !== undefined && (!Array.isArray(obj.details) || !obj.details.every(item => typeof item === 'string'))) {
+        console.log('Invalid "details" field - should be an array of strings');
+        return {};
+      }
+      
+      // Validate string fields
+      const stringFields = ['scene', 'style', 'lighting', 'mood', 'background', 'composition'];
+      for (const field of stringFields) {
+        if (obj[field] !== undefined && typeof obj[field] !== 'string') {
+          console.log(`Invalid "${field}" field - should be a string`);
+          return {};
+        }
+      }
+
+      // Validate subjects array items
+      for (let i = obj.subjects.length - 1; i >= 0; i--) {
+        const subject = obj.subjects[i];
+        if (typeof subject !== 'object' || subject === null) {
+          console.log(`Subject at index ${i} is not an object`);
+          obj.subjects.splice(i, 1);
+        }
+        if (!subject.description || typeof subject.description !== 'string') {
+          console.log(`Subject at index ${i} missing required "description" field`);
+          obj.subjects.splice(i, 1);
+        }
+      }
+
+      return obj;
+    } else {
+      console.log('No valid JSON object found');
+      return {};
+    }
+  } catch (e) {
+    console.log('Error parsing JSON object:', e);
+    return {};
+  }
+}
+
+
 // --- Main generation route (with BFL input_image support) ---
 app.post('/generate', upload.array('referenceImages'), async (req, res) => {
 	console.log('Request received');
@@ -246,7 +341,16 @@ app.post('/generate', upload.array('referenceImages'), async (req, res) => {
 
 		if (mode === 'advanced') {
 			console.log('Generating advanced prompt');
-			prompt = await generateAdvancedPrompt(req.body);
+			const advancedPrompt = await generateAdvancedPrompt(req.body);
+
+			// Try to parse the AI reponse
+			try{
+				const parsedPrompt = extractJsonObject(advancedPrompt);
+				prompt = JSON.stringify(parsedPrompt);
+				console.log('Successfuly generated advanced prompt');
+			} catch(err){
+				throw new Error('Error during prompt generation '+ err.message +'\nTry again');
+			}
 		}
 
 		if (!prompt) {
@@ -261,9 +365,14 @@ app.post('/generate', upload.array('referenceImages'), async (req, res) => {
 
 		let imageWidth, imageHeight;
 		if (ratio === 'custom') {
-			const { customWidth, customHeight } = req.body;
-			imageWidth = Number(customWidth);
-			imageHeight = Number(customHeight);
+			const { width, height } = req.body;
+			imageWidth = Number(width);
+			imageHeight = Number(height);
+
+			// Validate that they are valid numbers >= 64
+			if (isNaN(imageWidth) || isNaN(imageHeight) || imageWidth < 64 || imageHeight < 64) {
+				return res.status(400).json({ error: 'Invalid dimensions: must be numbers >= 64' });
+			}	
 		} else {
 			const { width, height } = ASPECT_RATIO_DIMS[ratio] || { width: 1440, height: 2048 };
 			imageWidth = Number(width);
@@ -279,17 +388,20 @@ app.post('/generate', upload.array('referenceImages'), async (req, res) => {
 		try {
 			// Prepare reference images (up to 8)
 			const inputImages = {};
+			const inputPaths = [];
 			for (let i = 0; i < Math.min(uploadedFiles.length, 8); i++) {
 				const filePath = uploadedFiles[i].path;
 				const base64Data = await encodeImageToBase64(filePath);
 				if (i === 0) {
 					inputImages[`input_image`] = `data:image/png;base64,${base64Data}`;
+					inputPaths.push(uploadedFiles[i].path);
 				} else {
 					inputImages[`input_image_${i + 1}`] = `data:image/png;base64,${base64Data}`;
+					inputPaths.push(uploadedFiles[i].path);
 				}
 			}
 
-			// Build payload — include input_image_* fields only if images provided
+			// Build payload - include input_image_* fields only if images provided
 			const payload = {
 				prompt,
 				width: imageWidth,
@@ -297,9 +409,9 @@ app.post('/generate', upload.array('referenceImages'), async (req, res) => {
 				seed: req.body.seed ? parseInt(req.body.seed, 10) : Math.floor(Math.random() * 1000000),
 				...inputImages,
 				output_format: req.body.outputFormat || 'png',
-				safety_tolerance: req.body.safetyTolerance || 5,
-				...(model.includes("flex") && { guidance: guidance }),
-				...(model.includes("flex") && { steps: steps }),
+				safety_tolerance: Math.max(0, Math.min(6, req.body.safetyTolerance)) || 5,
+				...(model.includes("flex") && { guidance: Math.max(1.5, Math.min(10, guidance)) }),
+				...(model.includes("flex") && { steps: Math.max(1, Math.min(50, steps)) }),
 				disable_pup: mode === 'advanced',
 				transparent_bg: req.body.transparentBg === 'on'
 			};
@@ -322,7 +434,7 @@ app.post('/generate', upload.array('referenceImages'), async (req, res) => {
 			// Step 2: Poll until ready
 			const imageUrl = await pollForResult(pollingUrl, requestId);
 
-			console.log(`Done\nUrl: ${pollingUrl}\n`);
+			console.log(`Url: ${pollingUrl}\n`);
 
 			// Step 3: Download image locally
 			const timestamp = Date.now();
@@ -331,13 +443,16 @@ app.post('/generate', upload.array('referenceImages'), async (req, res) => {
 
 			// Save config (with image count)
 			const config = {
-				prompt,
+				prompt: prompt,
+				mode: mode === 'advanced' ? 'advanced' : 'normal',
+				...(mode === 'advanced' && { style: req.body.style || ''}),
 				ratio,
-				model,
 				aspect: { width: imageWidth, height: imageHeight },
+				model,
 				timestamp,
 				bfl_request_id: requestId,
-				referenceImagesUsed: Math.min(uploadedFiles.length, 8)
+				referenceImagesUsed: Math.min(uploadedFiles.length, 8),
+				...(Math.min(uploadedFiles.length, 8) > 0 && {inputPaths})
 			};
 			await fs.writeFile(
 				path.join('images', `${timestamp}_config.txt`),
@@ -411,7 +526,7 @@ app.get('/api/models', (req, res) => {
 });
 
 // GET route to return credits data
-app.get('/credits', async (req, res) => {
+app.get('/api/credits', async (req, res) => {
 	try {
 		const response = await axios.get(`${BASE_URL}/credits`, {
 			headers: {
@@ -425,7 +540,7 @@ app.get('/credits', async (req, res) => {
 
 		res.json(response.data.credits);
 	} catch (error) {
-		console.error('Error fetching credits:', error);
+		console.error('Error fetching credits:', error.message);
 		res.status(500).json({
 			error: 'Failed to fetch credits data',
 			message: error.response?.data?.message || error.message
