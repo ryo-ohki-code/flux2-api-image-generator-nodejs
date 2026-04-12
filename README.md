@@ -35,7 +35,7 @@ git clone https://github.com/ryo-ohki-code/flux2-api-image-generator-nodejs
 2. Install dependencies:
 
 ```bash
-npm install express multer axios sharp
+npm install express multer axios sharp json5
 ```
 
 3. Set up environment variables:
@@ -108,7 +108,7 @@ When using the `advanced` mode, the app uses Ollama to enhance your prompt into 
 - Lighting and mood
 - Background and composition
 - Camera settings (angle, lens, distance, focus)
-- Subtle details and negative prompts
+- Subtle details
 
 This ensures more coherent and visually rich outputs.
 
@@ -138,15 +138,6 @@ This ensures more coherent and visually rich outputs.
     "subtle breath vapor in cold air",
     "natural body language and expressions",
     "no exaggerated poses or faces"
-  ],
-  "negative_prompt": [
-    "cartoon style",
-    "emote proportions",
-    "oversized heads",
-    "text",
-    "watermark",
-    "logo",
-    "distorted faces"
   ]
 }
 ```
@@ -232,6 +223,16 @@ A vibrant, adventure movie poster scene featuring an array of exuberant birds fr
 - Camera angle: Worm view
 - Lens: 35mm cinematic
 
+---
+
+![Sample-06](https://github.com/ryo-ohki-code/flux2-api-image-generator-nodejs/blob/main/samples/sample-06.png)
+- prompt: A vibrant, adventure movie poster scene featuring an array of exuberant birds from various regions. A Gabon grey parrot, a Cockatoo, a Cockatiel, a Parakeet, and a Starling. Birds are in a manor living room looking for clues.
+- Style: Adventure Movie Poster
+- Mood: Heroic, brave, powerful
+- Camera angle: Worm view
+- Lens: 35mm cinematic
+- Key details: keys and maps hidden under a chair, one bird has a monocle
+  
 ---
 
 Enjoy creating amazing AI-generated images! 🎨✨
