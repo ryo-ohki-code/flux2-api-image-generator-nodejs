@@ -177,7 +177,7 @@ This project is open-source and available under the [MIT License](LICENSE).
 
 ##  Sample images
 
-**No cherry pick:** this is the first 4 images generated using this bird prompt.
+**No cherry pick:** this is the first 6 images generated using this bird prompt.
 
 ### Prompt for simple mode: 
 ```
