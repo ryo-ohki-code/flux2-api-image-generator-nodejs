@@ -374,11 +374,11 @@
 					style="width: 100%; box-sizing: border-box; font-family: inherit;"></textarea><br><br>
 
 				<!-- Negative Prompt -->
-				<h4>🚫 Negative Prompt (What to avoid)</h4>
+				<!-- <h4>🚫 Negative Prompt (What to avoid)</h4>
 				<label for="negativePromptInput">Add comma-separated terms</label><br>
 				<textarea id="negativePromptInput" name="negative_prompt" rows="3"
 					placeholder="e.g., cartoon, distorted face, watermark, extra limbs"
-					style="width: 100%; box-sizing: border-box; font-family: inherit;"></textarea><br><br>
+					style="width: 100%; box-sizing: border-box; font-family: inherit;"></textarea><br><br> -->
 			</div>
 			<div id="advancedModeInputs" style="margin-top: 2rem; border-top: 1px solid #ddd; padding-top: 1rem;">
 			</div>
@@ -482,7 +482,7 @@
 		// Display available credits
 		async function displayCredits() {
 			try {
-				const response = await fetch('/credits');
+				const response = await fetch('/api/credits');
 				const creditsData = await response.json();
 
 				// Display the credits data
