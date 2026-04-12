@@ -9,7 +9,7 @@ A powerful Express.js application that integrates with the [BFL AI API](https://
 - **AI Image Generation**: Generate high-quality images using BFL's Flux 2 models.
 - **Advanced Prompt Engineering**: Leverages Ollama (Mistral-Nemo) to convert natural language prompts into structured, optimized JSON prompts.
 - **Reference Image Support**: Upload up to 8 reference images to guide image generation.
-- **Flexible Aspect Ratios**: Choose from 11 common aspect ratios (1:1, 2:3, 3:2, etc.).
+- **Flexible Aspect Ratios**: Choose from 11 common aspect ratios (1:1, 2:3, 3:2, etc., or custom width/height).
 - **Customizable Parameters**: Adjust guidance, steps, seed, safety tolerance, and more.
 - **Transparent Backgrounds**: Option to generate images with transparent backgrounds.
 - **Image History**: View and manage generated images with metadata.
