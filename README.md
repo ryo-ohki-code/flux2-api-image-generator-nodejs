@@ -151,7 +151,7 @@ This ensures more coherent and visually rich outputs.
 | `/generate`        | POST   | Generate an image                  |
 | `/api/history`     | GET    | Retrieve generation history        |
 | `/api/models`      | GET    | Get supported BFL models           |
-| `/credits`         | GET    | Get account credits                |
+| `/api/credits`         | GET    | Get account credits                |
 
 ---
 
