@@ -193,7 +193,9 @@
 		<textarea id="prompt" name="prompt" rows="7"
 			placeholder="Describe what you'd like to generate: Subject + Action + Style + Context" required></textarea>
 
-		<p>E.g.: Red fox (Subject) sitting in tall grass (Action), wildlife photography (Style), misty dawn (Context)</p>
+		<p>E.g.: Red fox (Subject) sitting in tall grass (Action), wildlife photography (Style), misty dawn (Context)
+			<br>Or Subject → Setting → Details → Lighting → Atmosphere 
+		</p>
 
 		<!-- Advanced Prompt Builder Section -->
 		<div id="advancedPromptToggle">
@@ -253,7 +255,8 @@
 				<option value="chaotic, intense, frenzied">Chaotic, intense, frenzied</option>
 				<option value="calm, soft, gentle">Calm, soft, gentle</option>
 				<option value="bold, vibrant, colorful">Bold, vibrant, colorful</option>
-				<option value="melancholic, introspective, contemplative">Melancholic, introspective, contemplative</option>
+				<option value="melancholic, introspective, contemplative">Melancholic, introspective, contemplative
+				</option>
 				<option value="heroic, brave, powerful">Heroic, brave, powerful</option>
 				<option value="whimsical, playful, cute">Whimsical, playful, cute</option>
 			</select><br><br>
@@ -361,11 +364,9 @@
 				<label for="depthOfField">Depth of Field / Camera Focus</label><br>
 				<input type="text" id="depthOfField" name="depth_of_field"
 					placeholder="e.g., sharp focus on subjects, soft blurred background" value=""><br><br>
-
 			</div>
 
 			<div id="advancedModeInputs" style="margin-top: 2rem; border-top: 1px solid #ddd; padding-top: 1rem;">
-
 				<!-- Details (List of visual notes) -->
 				<h4>✨ Key Visual Details</h4>
 				<label for="detailsInput">Add comma-separated details (max 5 recommended)</label><br>
@@ -382,7 +383,6 @@
 			</div>
 			<div id="advancedModeInputs" style="margin-top: 2rem; border-top: 1px solid #ddd; padding-top: 1rem;">
 			</div>
-
 
 			<br>
 		</div>
@@ -455,7 +455,6 @@
 
 	<div class="result-container" id="result"></div>
 
-	
 	<script>
 		// Load style list from /styles.txt
 		async function loadStylesFromFile() {
@@ -517,7 +516,18 @@
 				document.getElementById('result').innerHTML = `
 					<h3>✨ Generated Images</h3>${html}`;
 			} else {
-				alert("⚠ Error: " + data.error);
+				try {
+					const errorData = JSON.parse(data.details.split('failed: ')[1]) || data.details;
+					const moderationStatus = errorData.status || errorData.detail || 'unknown';
+					const moderationReasons = errorData.details?.["Moderation Reasons"] || [];
+					alert(`⚠ Error: ${data.error}\nStatus: ${moderationStatus}\nReason: ${moderationReasons.length > 0 ? moderationReasons.join(', ') : 'unknown reason'}`);
+				} catch (e) {
+					if(data.details && data.details.detail){
+						alert(data.details.detail)
+					}else {
+						alert(`⚠ Error: ${data.error}`);
+					}
+				}
 			}
 
 			await displayCredits();
