@@ -1,3 +1,4 @@
+// https://docs.bfl.ml/api-reference/get-the-users-credits
 // app.js - BFL AI version
 import express from 'express';
 import multer from 'multer';
@@ -118,7 +119,7 @@ async function pollForResult(pollingUrl, requestId) {
 		if (status === 'Error' || status === 'Failed' || status === 'Request Moderated' || status === 'Content Moderated' || status === 'Task not found') {
 			throw new Error(`Generation failed: ${JSON.stringify(res.data)}`);
 		}
-		if (res.data.details) {
+		if (res.data.detail) {
 			throw new Error(`Generation failed: ${JSON.stringify(res.data)}`); // .details["Moderation Reasons"]
 		}
 		if (status === 'Ready') return result.sample;
@@ -476,7 +477,7 @@ app.post('/generate', upload.array('referenceImages'), async (req, res) => {
 			console.error('BFL Error:', error.response?.data || error.message);
 			res.status(500).json({
 				error: 'Failed to generate image',
-				details: error.response?.data || error.message || error.details["Moderation Reasons"]
+				details: error.response?.data || error.message
 			});
 		}
 	} catch (err) {
